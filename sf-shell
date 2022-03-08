@@ -4,8 +4,8 @@
 
 import argparse
 
-from sftool import SF
-from sftool import SFConfig
+from sftools import SF
+from sftools import SFConfig
 
 
 def main():
