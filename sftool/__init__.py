@@ -2,7 +2,6 @@
 #
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
-import argparse
 import os
 import re
 import requests
@@ -949,66 +948,3 @@ class SFOAuthVerification(object):
         self.device_code = response.get('device_code')
         params = {'user_code': self.user_code}
         self.url = requests.Request('GET', self.verification_uri, params=params).prepare().url
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Be verbose.')
-    lazy = parser.add_mutually_exclusive_group()
-    lazy.add_argument('--lazy-fields', action='store_true',
-                      help='Load object fields lazily (default, except in shell mode)')
-    lazy.add_argument('--preload-fields', action='store_true',
-                      help='Preload all object fields (default only in shell mode)')
-    config = parser.add_mutually_exclusive_group()
-    config.add_argument('-c', '--config',
-                        help='Alternate config file to use')
-    config.add_argument('-P', '--production', action='store_true',
-                        help='Use standard production server config file (default)')
-    config.add_argument('-S', '--sandbox', action='store_true',
-                        help='Use sandbox server config file')
-    action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument('--show-config', action='store_true',
-                        help='Show current config')
-    action.add_argument('-s', '--shell', action='store_true',
-                        help='Start interactive shell')
-    action.add_argument('-o', '--oauth', action='store_true',
-                        help='Request new OAuth token')
-    action.add_argument('--oauth-refresh', action='store_true',
-                        help='Refresh existing OAuth token')
-    action.add_argument('-e', '--evaluate',
-                        help='Evaluate and print result (e.g. "-e sf.Case(123456).AccountId")')
-
-    opts = parser.parse_args()
-
-    preload_fields = opts.shell
-    if opts.lazy_fields:
-        preload_fields = False
-    elif opts.preload_fields:
-        preload_fields = True
-
-    config = None
-    if opts.config:
-        config = SFConfig(opts.config)
-    elif opts.sandbox:
-        config = SFConfig.SANDBOX()
-
-    sf = SF(config, verbose=opts.verbose, preload_fields=preload_fields)
-    if opts.show_config:
-        sf.config.show()
-    elif opts.oauth:
-        sf.request_oauth()
-    elif opts.oauth_refresh:
-        sf.refresh_oauth()
-    elif opts.evaluate:
-        sf.evaluate(opts.evaluate)
-    else:
-        try:
-            import IPython
-            IPython.start_ipython(argv=[], user_ns={'sf': sf})
-        except ImportError:
-            print('Please install ipython.')
-
-
-if __name__ == "__main__":
-    main()
