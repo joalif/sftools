@@ -7,5 +7,7 @@ setup(
     install_requires=[
         'simple-salesforce',
         'ipython',
+        'requests',
     ],
+    scripts=['sf-shell'],
 )
