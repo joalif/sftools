@@ -58,7 +58,7 @@ def main():
     elif opts.oauth_refresh:
         sf.refresh_oauth()
     elif opts.evaluate:
-        sf.evaluate(opts.evaluate)
+        print(sf.evaluate(opts.evaluate))
     else:
         try:
             import IPython

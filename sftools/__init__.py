@@ -209,7 +209,7 @@ class SF(object):
         sf = self
         if self.verbose:
             print(f'SF evaluate: {e}')
-        eval(e, globals(), locals())
+        return eval(e, globals(), locals())
 
     def _query(self, *, select, frm, where, orderby=None, limit=None, offset=None):
         '''Low-level SF query (SOQL)
