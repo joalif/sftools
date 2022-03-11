@@ -38,11 +38,11 @@ def main():
 
     opts = parser.parse_args()
 
-    preload_fields = opts.shell
+    params = {'verbose': opts.verbose}
     if opts.lazy_fields:
-        preload_fields = False
+        params['preload_fields'] = False
     elif opts.preload_fields:
-        preload_fields = True
+        params['preload_fields'] = True
 
     config = None
     if opts.config:
@@ -50,7 +50,7 @@ def main():
     elif opts.sandbox:
         config = SFConfig.SANDBOX()
 
-    sf = SF(config, verbose=opts.verbose, preload_fields=preload_fields)
+    sf = SF(config, **params)
     if opts.show_config:
         sf.config.show()
     elif opts.oauth:
@@ -60,6 +60,8 @@ def main():
     elif opts.evaluate:
         print(sf.evaluate(opts.evaluate))
     else:
+        if 'preload_fields' not in params:
+            sf.preload_fields = True
         try:
             import IPython
             IPython.start_ipython(argv=[], user_ns={'sf': sf})
