@@ -24,11 +24,11 @@ def main():
                         help='Use standard production server config file (default)')
     config.add_argument('-S', '--sandbox', action='store_true',
                         help='Use sandbox server config file')
-    action = parser.add_mutually_exclusive_group(required=True)
+    action = parser.add_mutually_exclusive_group()
     action.add_argument('--show-config', action='store_true',
                         help='Show current config')
-    action.add_argument('-s', '--shell', action='store_true',
-                        help='Start interactive shell')
+    action.add_argument('-s', '--shell', action='store_true', default=True,
+                        help='Start interactive shell (deprecated: this is the default action)')
     action.add_argument('-o', '--oauth', action='store_true',
                         help='Request new OAuth token')
     action.add_argument('--oauth-refresh', action='store_true',
