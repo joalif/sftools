@@ -205,11 +205,9 @@ class SF(object):
         for example "Case(12345).AccountId" which would return the result of
         self.Case(12345).AccountId.
         '''
-        # Provide 'sf' in locals, since it's provided in shell mode
-        sf = self
         if self.verbose:
             print(f'SF evaluate: {e}')
-        return eval(e, globals(), locals())
+        return eval(e, dict(sf=self, **globals()))
 
     def _query(self, *, select, frm, where, orderby=None, limit=None, offset=None):
         '''Low-level SF query (SOQL)
