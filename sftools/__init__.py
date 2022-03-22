@@ -180,11 +180,10 @@ class SF(object):
         '''Get a list of all valid Salesforce object names.
 
         This returns names for objects that are:
-        - non-custom
         - queryable
         - searchable
         '''
-        valid = filter(lambda o: o.get('queryable') and o.get('searchable') and not o.get('custom'),
+        valid = filter(lambda o: o.get('queryable') and o.get('searchable'),
                        self._salesforce_call('describe').get('sobjects'))
         return tuple(map(lambda o: o.get('name'), valid))
 
