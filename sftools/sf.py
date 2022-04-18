@@ -20,7 +20,7 @@ from sftools.oauth import SFOAuth
 from sftools.type import SFType
 
 
-class SF():
+class SF(object):
     '''Interface to Salesforce.
 
     This is primarily a convenience interface to perform query() and search() calls.
