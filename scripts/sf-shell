@@ -12,7 +12,7 @@ if Path(__file__).parent.name == 'scripts':
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sftools import SF
-from sftools import SFConfig
+from sftools.config import SFConfig
 
 
 def main():
