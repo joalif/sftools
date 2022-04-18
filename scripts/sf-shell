@@ -3,6 +3,13 @@
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
 import argparse
+import sys
+
+from pathlib import Path
+
+# if called from git source, add parent dir to python path
+if Path(__file__).parent.name == 'scripts':
+    sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sftools import SF
 from sftools import SFConfig

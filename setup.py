@@ -9,5 +9,7 @@ setup(
         'ipython',
         'requests',
     ],
-    scripts=['sf-shell'],
+    scripts=[
+        'scripts/sf-shell',
+    ],
 )
