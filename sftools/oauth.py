@@ -5,7 +5,6 @@
 import requests
 import time
 
-from configparser import ConfigParser
 from datetime import datetime
 from datetime import timedelta
 

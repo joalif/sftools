@@ -5,7 +5,6 @@
 import configparser
 import os
 
-from copy import copy
 from functools import cached_property
 from io import StringIO
 from pathlib import Path
