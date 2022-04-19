@@ -124,6 +124,9 @@ class SFConfig(object):
 
         To save this change to our config file, use the save() method.
         '''
+        if 'production' not in self._user_config['salesforce']:
+            # Store 'production' setting if not yet set
+            self._user_config.set('salesforce', 'production', str(self._production))
         self._user_config.set('salesforce', key, value)
 
     def save(self):
