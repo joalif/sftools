@@ -27,7 +27,7 @@ class SFConfig(object):
     will this class notice if another process updates the config file.
     '''
     DEFAULT_PATH = Path('/etc/sftools')
-    USER_PATH = Path(os.getenv('XDG_CONFIG_HOME', '~/.config')).expanduser().resolve() / 'sftool'
+    USER_PATH = Path(os.getenv('XDG_CONFIG_HOME', '~/.config')).expanduser().resolve() / 'sftools'
 
     DEFAULT_FILENAME = 'default.conf'
     PRODUCTION_FILENAME = 'production.conf'
