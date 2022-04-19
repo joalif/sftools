@@ -34,9 +34,9 @@ class SFConfig(object):
     SANDBOX_FILENAME = 'sandbox.conf'
 
     @classmethod
-    def _configparser(cls, defaults=None, read=None, nodefault=False):
+    def _configparser(cls, read=None, nodefault=False):
         default_section = 'NONE' if nodefault else configparser.DEFAULTSECT
-        config = configparser.ConfigParser(default_section=default_section, defaults=defaults)
+        config = configparser.ConfigParser(default_section=default_section)
         if default_section != configparser.DEFAULTSECT:
             config.add_section(configparser.DEFAULTSECT)
         config.add_section('salesforce')
@@ -45,13 +45,14 @@ class SFConfig(object):
         return config
 
     @classmethod
-    def IS_PRODUCTION(cls, configfile=None, defaults={}, fallback=True):
+    def IS_PRODUCTION(cls, configfile=None, fallback=True):
         '''Read only our default config and the provided configfile,
-        and determine if we are configured as production or not.'''
+        and determine if we are configured as production or not.
+        '''
         configfiles = [cls.DEFAULT_PATH / cls.DEFAULT_FILENAME]
         if configfile:
             configfiles.append(cls.USER_PATH / Path(configfile).expanduser())
-        config = cls._configparser(defaults=defaults, read=configfiles)
+        config = cls._configparser(read=configfiles)
         return config.getboolean('salesforce', 'production', fallback=fallback)
 
     @classmethod
@@ -63,16 +64,19 @@ class SFConfig(object):
 
     @classmethod
     def PRODUCTION(cls):
-        return cls(cls.PRODUCTION_FILENAME, readonly=False, defaults={'production': 'true'})
+        return cls(cls.PRODUCTION_FILENAME, readonly=False, production=True)
 
     @classmethod
     def SANDBOX(cls):
-        return cls(cls.SANDBOX_FILENAME, readonly=False, defaults={'production': 'false'})
+        return cls(cls.SANDBOX_FILENAME, readonly=False, production=False)
 
-    def __init__(self, configfile, readonly=True, defaults={}):
+    def __init__(self, configfile, readonly=True, production=None):
         self._configfile = configfile
         self._readonly = readonly
-        self._defaults = defaults
+        if production is None:
+            self._production = self.IS_PRODUCTION(self.path)
+        else:
+            self._production = production
 
     @cached_property
     def _user_config(self):
@@ -81,10 +85,8 @@ class SFConfig(object):
     @cached_property
     def _default_config(self):
         configfiles = [self.DEFAULT_PATH / self.DEFAULT_FILENAME]
-        if self.IS_PRODUCTION(self.path, defaults=self._defaults):
-            configfiles.append(self.DEFAULT_PATH / self.PRODUCTION_FILENAME)
-        else:
-            configfiles.append(self.DEFAULT_PATH / self.SANDBOX_FILENAME)
+        filename = self.PRODUCTION_FILENAME if self._production else self.SANDBOX_FILENAME
+        configfiles.append(self.DEFAULT_PATH / filename)
         config = self._configparser(read=configfiles, nodefault=True)
         return config
 
