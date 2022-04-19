@@ -2,7 +2,6 @@
 #
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
-import argparse
 import sys
 
 from pathlib import Path
@@ -11,33 +10,19 @@ from pathlib import Path
 if Path(__file__).parent.name == 'scripts':
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sftools import SF
-from sftools.config import SFConfig
+from sftools.argparse import SFArgumentParser
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Be verbose.')
+    parser = SFArgumentParser(action_required=False)
+
     lazy = parser.add_mutually_exclusive_group()
     lazy.add_argument('--lazy-fields', action='store_true',
                       help='Load object fields lazily (default, except in shell mode)')
     lazy.add_argument('--preload-fields', action='store_true',
                       help='Preload all object fields (default only in shell mode)')
-    config = parser.add_mutually_exclusive_group()
-    config.add_argument('-c', '--config',
-                        help='Alternate config file to use')
-    config.add_argument('-P', '--production', action='store_true',
-                        help='Use standard production server config file (default)')
-    config.add_argument('-S', '--sandbox', action='store_true',
-                        help='Use sandbox server config file')
-    action = parser.add_mutually_exclusive_group()
-    action.add_argument('--show-full-config', action='store_true',
-                        help='Show current full config (including defaults)')
-    action.add_argument('--show-config', action='store_true',
-                        help='Show current user config (without defaults)')
-    action.add_argument('-s', '--shell', action='store_true', default=True,
-                        help='Start interactive shell (deprecated: this is the default action)')
+
+    action = parser.action_group
     action.add_argument('-o', '--oauth', action='store_true',
                         help='Request new OAuth token')
     action.add_argument('--oauth-refresh', action='store_true',
@@ -47,31 +32,22 @@ def main():
 
     opts = parser.parse_args()
 
-    params = {'verbose': opts.verbose}
+    kwargs = {}
     if opts.lazy_fields:
-        params['preload_fields'] = False
+        kwargs['preload_fields'] = False
     elif opts.preload_fields:
-        params['preload_fields'] = True
+        kwargs['preload_fields'] = True
 
-    config = None
-    if opts.config:
-        config = SFConfig(opts.config)
-    elif opts.sandbox:
-        config = SFConfig.SANDBOX()
+    sf = parser.sf(opts, **kwargs)
 
-    sf = SF(config, **params)
-    if opts.show_config:
-        sf.config.show()
-    elif opts.show_full_config:
-        sf.config.show(full=True)
-    elif opts.oauth:
+    if opts.oauth:
         sf.request_oauth()
     elif opts.oauth_refresh:
         sf.refresh_oauth()
     elif opts.evaluate:
         print(sf.evaluate(opts.evaluate))
     else:
-        if 'preload_fields' not in params:
+        if 'preload_fields' not in kwargs:
             sf.preload_fields = True
         try:
             import IPython
