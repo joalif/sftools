@@ -2,9 +2,10 @@
 #
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
+import configparser
 import os
 
-from configparser import ConfigParser
+from copy import copy
 from functools import cached_property
 from io import StringIO
 from pathlib import Path
@@ -34,14 +35,24 @@ class SFConfig(object):
     SANDBOX_FILENAME = 'sandbox.conf'
 
     @classmethod
+    def _configparser(cls, defaults=None, read=None, nodefault=False):
+        default_section = 'NONE' if nodefault else configparser.DEFAULTSECT
+        config = configparser.ConfigParser(default_section=default_section, defaults=defaults)
+        if default_section != configparser.DEFAULTSECT:
+            config.add_section(configparser.DEFAULTSECT)
+        config.add_section('salesforce')
+        if read:
+            config.read(read)
+        return config
+
+    @classmethod
     def IS_PRODUCTION(cls, configfile=None, defaults={}, fallback=True):
         '''Read only our default config and the provided configfile,
         and determine if we are configured as production or not.'''
-        config = ConfigParser(defaults=defaults)
-        config.add_section('salesforce')
-        config.read(cls.DEFAULT_PATH / cls.DEFAULT_FILENAME)
+        configfiles = [cls.DEFAULT_PATH / cls.DEFAULT_FILENAME]
         if configfile:
-            config.read(cls.USER_PATH / Path(configfile).expanduser())
+            configfiles.append(cls.USER_PATH / Path(configfile).expanduser())
+        config = cls._configparser(defaults=defaults, read=configfiles)
         return config.getboolean('salesforce', 'production', fallback=fallback)
 
     @classmethod
@@ -65,22 +76,25 @@ class SFConfig(object):
         self._defaults = defaults
 
     @cached_property
-    def config(self):
-        config = ConfigParser(defaults=self._defaults)
-        config.add_section('salesforce')
+    def _user_config(self):
+        return self._configparser(read=self.path, nodefault=True)
+
+    @cached_property
+    def _default_config(self):
+        configfiles = [self.DEFAULT_PATH / self.DEFAULT_FILENAME]
         if self.IS_PRODUCTION(self.path, defaults=self._defaults):
-            filename = self.PRODUCTION_FILENAME
+            configfiles.append(self.DEFAULT_PATH / self.PRODUCTION_FILENAME)
         else:
-            filename = self.SANDBOX_FILENAME
-        config.read([self.DEFAULT_PATH / self.DEFAULT_FILENAME,
-                     self.DEFAULT_PATH / filename,
-                     self.path])
+            configfiles.append(self.DEFAULT_PATH / self.SANDBOX_FILENAME)
+        config = self._configparser(read=configfiles, nodefault=True)
         return config
 
-    def __repr__(self):
-        with StringIO() as s:
-            self.config.write(s)
-            return s.getvalue()
+    @property
+    def config(self):
+        config = self._configparser()
+        config.read_dict(self._default_config)
+        config.read_dict(self._user_config)
+        return config
 
     @cached_property
     def path(self):
@@ -109,7 +123,7 @@ class SFConfig(object):
 
         To save this change to our config file, use the save() method.
         '''
-        self.config.set('salesforce', key, value)
+        self._user_config.set('salesforce', key, value)
 
     def save(self):
         '''Save our current config to our config file.
@@ -118,13 +132,28 @@ class SFConfig(object):
         and will instead print out our config and ask the user
         to manually update the config file.
         '''
+        content = self._repr(full=False)
         if self.readonly:
             print('Refusing to save config to file, please update it manually:')
             print('')
-            print(str(self))
+            print(content)
         else:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            self.path.write_text(str(self))
+            self.path.write_text(content)
 
-    def show(self):
-        print(self)
+    def __repr__(self):
+        return self._repr(True)
+
+    def _repr(self, full):
+        if full:
+            config = self._configparser(nodefault=True)
+            config.read_dict(self._default_config)
+            config.read_dict(self._user_config)
+        else:
+            config = self._user_config
+        with StringIO() as s:
+            config.write(s)
+            return s.getvalue()
+
+    def show(self, full=False):
+        print(self._repr(full=full))

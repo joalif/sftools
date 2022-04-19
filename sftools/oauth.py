@@ -39,9 +39,17 @@ class SFOAuth(object):
     def access_token(self):
         return self.config.get('access_token')
 
+    @access_token.setter
+    def access_token(self, value):
+        self.config.set('access_token', value)
+
     @property
     def refresh_token(self):
         return self.config.get('refresh_token')
+
+    @refresh_token.setter
+    def refresh_token(self, value):
+        self.config.set('refresh_token', value)
 
     @property
     def client_id(self):

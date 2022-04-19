@@ -32,8 +32,10 @@ def main():
     config.add_argument('-S', '--sandbox', action='store_true',
                         help='Use sandbox server config file')
     action = parser.add_mutually_exclusive_group()
+    action.add_argument('--show-full-config', action='store_true',
+                        help='Show current full config (including defaults)')
     action.add_argument('--show-config', action='store_true',
-                        help='Show current config')
+                        help='Show current user config (without defaults)')
     action.add_argument('-s', '--shell', action='store_true', default=True,
                         help='Start interactive shell (deprecated: this is the default action)')
     action.add_argument('-o', '--oauth', action='store_true',
@@ -60,6 +62,8 @@ def main():
     sf = SF(config, **params)
     if opts.show_config:
         sf.config.show()
+    elif opts.show_full_config:
+        sf.config.show(full=True)
     elif opts.oauth:
         sf.request_oauth()
     elif opts.oauth_refresh:

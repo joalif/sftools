@@ -73,8 +73,6 @@ class SF(object):
         unless we are using an alternate config file.
         '''
         self.oauth.request_access_token(self.verbose)
-        self.config.set('access_token', self.oauth.access_token)
-        self.config.set('refresh_token', self.oauth.refresh_token)
         self.config.save()
 
     def refresh_oauth(self):
@@ -89,7 +87,6 @@ class SF(object):
         del self._salesforce
 
         self.oauth.refresh_access_token()
-        self.config.set('access_token', self.oauth.access_token)
         self.config.save()
 
     def _sf_call_and_refresh(self, func, after_refresh=None):
