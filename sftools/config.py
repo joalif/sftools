@@ -42,7 +42,7 @@ class SFConfig(object):
         config.read(cls.DEFAULT_PATH / cls.DEFAULT_FILENAME)
         if configfile:
             config.read(cls.USER_PATH / Path(configfile).expanduser())
-        return configparser.getboolean('salesforce', 'production', fallback=fallback)
+        return config.getboolean('salesforce', 'production', fallback=fallback)
 
     @classmethod
     def DEFAULT(cls):

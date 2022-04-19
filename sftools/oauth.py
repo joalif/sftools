@@ -162,7 +162,6 @@ class SFOAuth(object):
 
         r.raise_for_status()
         self.access_token = r.json().get('access_token')
-        self.access_token
 
 
 class SFOAuthVerification(object):
