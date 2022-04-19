@@ -5,6 +5,7 @@
 import requests
 import time
 
+from configparser import ConfigParser
 from datetime import datetime
 from datetime import timedelta
 
@@ -27,34 +28,32 @@ class SFOAuth(object):
     We use the Device Flow.
     https://www.oauth.com/oauth2-servers/device-flow/authorization-request/
 
-    If you have a access and refresh token, set those on this instance either
-    when the instance is created or after. Then you can read the access token,
-    and if/when it expires, you can call refresh_access_token() to refresh it.
-
     To create new access and refresh tokens, call the request_access_token()
     method, which will interactively perform OAuth and update the access and
     refresh tokens.
     '''
-    PRODUCTION_CLIENT_ID = '3MVG9WtWSKUDG.x4DRiupfwgvo8QIUtDtf9GkzuGiGN_YJlFmGEvF9E3OtcrLNDVx21_EUQC_nafPFePs._0l' # noqa
-    PRODUCTION_INSTANCE = 'canonical.my.salesforce.com'
-    PRODUCTION_DOMAIN = 'login'
+    def __init__(self, config):
+        self.config = config
 
-    SANDBOX_CLIENT_ID = '3MVG9rKhT8ocoxGkPdSEUBFzU_WubXBhhzjwCCg3pOMYzbt6.FngYpJWSfgfKS9C67kKo5a8KpW.vKDbtVAQ_' # noqa
-    SANDBOX_INSTANCE = 'canonical--obiwan.my.salesforce.com'
-    SANDBOX_DOMAIN = 'test'
+    @property
+    def access_token(self):
+        return self.config.get('access_token')
 
-    def __init__(self, production=True, access_token=None, refresh_token=None):
-        self.production = production
-        self.access_token = access_token
-        self.refresh_token = refresh_token
+    @property
+    def refresh_token(self):
+        return self.config.get('refresh_token')
 
     @property
     def client_id(self):
-        return self.PRODUCTION_CLIENT_ID if self.production else self.SANDBOX_CLIENT_ID
+        return self.config.get('client_id', required=True)
 
     @property
     def instance(self):
-        return self.PRODUCTION_INSTANCE if self.production else self.SANDBOX_INSTANCE
+        return self.config.get('instance', required=True)
+
+    @property
+    def domain(self):
+        return self.config.get('domain', required=True)
 
     @property
     def instance_url(self):
@@ -63,10 +62,6 @@ class SFOAuth(object):
     @property
     def token_url(self):
         return f'{self.instance_url}/services/oauth2/token'
-
-    @property
-    def domain(self):
-        return self.PRODUCTION_DOMAIN if self.production else self.SANDBOX_DOMAIN
 
     @property
     def login_params(self):

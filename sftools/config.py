@@ -26,31 +26,55 @@ class SFConfig(object):
     config file, as there is no attempt to synchronize reads/writes nor
     will this class notice if another process updates the config file.
     '''
+    DEFAULT_PATH = Path('/etc/sftools')
+    USER_PATH = Path(os.getenv('XDG_CONFIG_HOME', '~/.config')).expanduser().resolve() / 'sftool'
+
+    DEFAULT_FILENAME = 'default.conf'
+    PRODUCTION_FILENAME = 'production.conf'
+    SANDBOX_FILENAME = 'sandbox.conf'
+
+    @classmethod
+    def IS_PRODUCTION(cls, configfile=None, defaults={}, fallback=True):
+        '''Read only our default config and the provided configfile,
+        and determine if we are configured as production or not.'''
+        config = ConfigParser(defaults=defaults)
+        config.add_section('salesforce')
+        config.read(cls.DEFAULT_PATH / cls.DEFAULT_FILENAME)
+        if configfile:
+            config.read(cls.USER_PATH / Path(configfile).expanduser())
+        return configparser.getboolean('salesforce', 'production', fallback=fallback)
+
+    @classmethod
+    def DEFAULT(cls):
+        if cls.IS_PRODUCTION():
+            return cls.PRODUCTION()
+        else:
+            return cls.SANDBOX()
+
     @classmethod
     def PRODUCTION(cls):
-        # NOTE: unfortunately @classmethod can't be used with @property until py3.9
-        #       so, this and SANDBOX must be classmethods to be portable to older py
-        return cls(cls.configdir() / 'production.conf', readonly=False, production=True)
+        return cls(cls.PRODUCTION_FILENAME, readonly=False, defaults={'production': 'true'})
 
     @classmethod
     def SANDBOX(cls):
-        return cls(cls.configdir() / 'sandbox.conf', readonly=False, production=False)
+        return cls(cls.SANDBOX_FILENAME, readonly=False, defaults={'production': 'false'})
 
-    @classmethod
-    def configdir(cls):
-        xdg_config_home = os.getenv('XDG_CONFIG_HOME', '~/.config')
-        return Path(xdg_config_home).expanduser().resolve() / 'sftool'
-
-    def __init__(self, configfile, readonly=True, production=True):
+    def __init__(self, configfile, readonly=True, defaults={}):
         self._configfile = configfile
         self._readonly = readonly
-        self._config_defaults = {'production': production}
+        self._defaults = defaults
 
     @cached_property
     def config(self):
-        config = ConfigParser(defaults=self._config_defaults)
+        config = ConfigParser(defaults=self._defaults)
         config.add_section('salesforce')
-        config.read(self.path)
+        if self.IS_PRODUCTION(self.path, defaults=self._defaults):
+            filename = self.PRODUCTION_FILENAME
+        else:
+            filename = self.SANDBOX_FILENAME
+        config.read([self.DEFAULT_PATH / self.DEFAULT_FILENAME,
+                     self.DEFAULT_PATH / filename,
+                     self.path])
         return config
 
     def __repr__(self):
@@ -60,17 +84,23 @@ class SFConfig(object):
 
     @cached_property
     def path(self):
-        return Path(self._configfile).expanduser().resolve()
+        return self.USER_PATH / Path(self._configfile).expanduser()
 
     @property
     def readonly(self):
         return self._readonly
 
-    def get(self, key, fallback=None):
-        return self.config.get('salesforce', key, fallback=fallback)
+    def _get(self, func, key, fallback=None, required=False):
+        value = func('salesforce', key, fallback=fallback)
+        if value is None and required:
+            raise ValueError(f'Missing required config: {key}')
+        return value
 
-    def getboolean(self, key, fallback=None):
-        return self.config.getboolean('salesforce', key, fallback=fallback)
+    def get(self, key, fallback=None, required=False):
+        return self._get(self.config.get, key, fallback=fallback, required=required)
+
+    def getboolean(self, key, fallback=None, required=False):
+        return self._get(self.config.getboolean, key, fallback=fallback, required=required)
 
     def set(self, key, value):
         '''Set the key to value.

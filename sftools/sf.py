@@ -33,7 +33,7 @@ class SF(object):
     def __init__(self, config=None, verbose=False, preload_fields=False, sf_version=None):
         if isinstance(config, str):
             config = SFConfig(config)
-        self._config = config or SFConfig.PRODUCTION()
+        self._config = config or SFConfig.DEFAULT()
         self._sf_version = sf_version or '53.0'
         self.verbose = verbose
         self.preload_fields = preload_fields
@@ -44,10 +44,7 @@ class SF(object):
 
     @cached_property
     def oauth(self):
-        production = self.config.getboolean('production')
-        access_token = self.config.get('access_token')
-        refresh_token = self.config.get('refresh_token')
-        return SFOAuth(production, access_token=access_token, refresh_token=refresh_token)
+        return SFOAuth(self.config)
 
     @property
     def _salesforce_login_params(self):
