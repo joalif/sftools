@@ -6,14 +6,14 @@ from sftools.config import SFConfig
 
 
 class SFArgumentParser(argparse.ArgumentParser):
-    def __init__(self, *args, action_required=True, **kwargs):
+    def __init__(self, *args, action_required=False, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.add_argument('-v', '--verbose', action='store_true',
                           help='Be verbose.')
 
         config = self.add_mutually_exclusive_group()
-        config.add_argument('-c', '--config',
+        config.add_argument('--config',
                             help='Alternate config file to use')
         config.add_argument('-P', '--production', action='store_true',
                             help='Use standard production server config file (default)')

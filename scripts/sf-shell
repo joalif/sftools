@@ -14,7 +14,7 @@ from sftools.argparse import SFArgumentParser
 
 
 def main():
-    parser = SFArgumentParser(action_required=False)
+    parser = SFArgumentParser()
 
     lazy = parser.add_mutually_exclusive_group()
     lazy.add_argument('--lazy-fields', action='store_true',
