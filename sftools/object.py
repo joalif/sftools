@@ -13,9 +13,15 @@ except ImportError:
 
 class SFObject(object):
     '''SF object for object type and object id.'''
+    SUBCLASSES = {}
+
     @classmethod
     def getclass(cls, name):
-        return globals().get(f'SF{name}Object', SFObject)
+        return cls.SUBCLASSES.get(name, cls)
+
+    @classmethod
+    def __init_subclass__(cls, /, name, **kwargs):
+        cls.SUBCLASSES[name] = cls
 
     def __init__(self, sftype, record):
         '''Constructor for SFObjects.
@@ -57,29 +63,3 @@ class SFObject(object):
         with suppress(SalesforceMalformedRequest):
             return self._sf.query(select=attr, frm=self._name, where=where).record.get(attr, None)
         return None
-
-
-class SFCaseObject(SFObject):
-    '''SF Case Object.'''
-    @cached_property
-    def comments(self):
-        '''Get all CaseComments for this Case.
-
-        Returns a QueryResult of CaseComment objects.
-        '''
-        return self._sf.CaseComment.query(where=f"ParentId = '{self.Id}'")
-
-
-class SFCaseCommentObject(SFObject):
-    '''SF CaseComment Object.'''
-    def __repr__(self):
-        return self.CommentBody
-
-    @cached_property
-    def case(self):
-        '''Get the Case sfobject for this comment.'''
-        return self._sf.Case(self.ParentId)
-
-    def __contains__(self, item):
-        '''Check if item in our CommentBody'''
-        return item in self.CommentBody
