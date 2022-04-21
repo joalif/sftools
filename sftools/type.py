@@ -139,18 +139,8 @@ class SFType(object):
             return self._sfobjects.get(id_or_record)
 
         with suppress(SalesforceMalformedRequest):
-            return self._query(where=f"Id = '{id_or_record}'").sfobject
+            return self.query(where=f"Id = '{id_or_record}'").sfobject
         return None
-
-    def _query(self, where, *, select=None, preload_fields=None):
-        if preload_fields is None:
-            preload_fields = self._sf.preload_fields
-        select = SELECT(select, 'Id')
-        where = WHERE_AND(where, self._where_recordtypeids)
-        return self._sf.query(select=select,
-                              frm=self.name,
-                              where=where,
-                              preload_fields=preload_fields)
 
     def query(self, where, *, select=None, preload_fields=None):
         '''Query this specific SFType.
@@ -164,4 +154,11 @@ class SFType(object):
 
         Returns a QueryResult of matching SFObjects of this SFType.
         '''
-        return self._query(where, select=select, preload_fields=preload_fields)
+        if preload_fields is None:
+            preload_fields = self._sf.preload_fields
+        select = SELECT(select, 'Id')
+        where = WHERE_AND(where, self._where_recordtypeids)
+        return self._sf.query(select=select,
+                              frm=self.name,
+                              where=where,
+                              preload_fields=preload_fields)
