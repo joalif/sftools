@@ -66,3 +66,15 @@ class SFObject(object):
 
     def __repr__(self):
         return f'{self._sftype}: {self.Id}'
+
+    def dumpfields(self, fields=None, label=None):
+        if not fields:
+            fields = self._sftype._fieldnames
+        if label is None:
+            label = len(fields) != 1
+        for f in fields:
+            value = getattr(self, f)
+            if label:
+                print(f'{f}: {value}')
+            else:
+                print(value)
