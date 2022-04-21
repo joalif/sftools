@@ -63,3 +63,6 @@ class SFObject(object):
         with suppress(SalesforceMalformedRequest):
             return self._sf.query(select=attr, frm=self._name, where=where).record.get(attr, None)
         return None
+
+    def __repr__(self):
+        return f'{self._sftype}: {self.Id}'

@@ -112,6 +112,9 @@ class SFType(object):
             raise AttributeError(f'{self.name} has no attribute {attr}')
         return getattr(self._sftype, attr)
 
+    def __repr__(self):
+        return self._sftype.name
+
     def __dir__(self):
         return list(set(dir(self._sftype)) | set(super().__dir__()))
 
