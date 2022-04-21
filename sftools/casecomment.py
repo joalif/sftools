@@ -6,16 +6,17 @@ from functools import cached_property
 
 from sftools.object import SFObject
 from sftools.type import SFType
+from sftools.type import WHERE_LIKE
 
 
 class SFCaseCommentType(SFType, name='CaseComment'):
     '''SF Case Type.'''
-    def contains(self, searchstring):
+    def contains(self, searchstring, limit=None):
         '''Search all CaseComments for the searchstring.
 
         returns a QueryResult of matching CaseComment objects.
         '''
-        return self.query(WHERE_LIKE('CommentBody', searchstring))
+        return self.query(WHERE_LIKE('CommentBody', searchstring), limit=limit)
 
 
 class SFCaseCommentObject(SFObject, name='CaseComment'):
