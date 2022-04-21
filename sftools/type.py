@@ -142,7 +142,7 @@ class SFType(object):
             return self.query(where=f"Id = '{id_or_record}'").sfobject
         return None
 
-    def query(self, where, *, select=None, preload_fields=None):
+    def query(self, where, *, select=None, preload_fields=None, **kwargs):
         '''Query this specific SFType.
 
         The 'where' parameter should be in standard SOQL format:
@@ -161,4 +161,5 @@ class SFType(object):
         return self._sf.query(select=select,
                               frm=self.name,
                               where=where,
-                              preload_fields=preload_fields)
+                              preload_fields=preload_fields,
+                              **kwargs)
