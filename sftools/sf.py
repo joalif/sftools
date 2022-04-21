@@ -190,7 +190,7 @@ class SF(object):
         '''
         return self._query(select='COUNT()', frm=frm, where=where).totalSize
 
-    def query(self, *, select, frm, where, orderby=None, preload_fields=False):
+    def query(self, *, select, frm, where, orderby=None, limit=None, preload_fields=False):
         '''SF query (SOQL)
 
         REST api:
@@ -217,18 +217,22 @@ class SF(object):
         count = self.query_count(frm=frm, where=where)
 
         # query() has a hard limit of 2000
-        limit = 2000
+        hard_limit = 2000
 
         if preload_fields is True:
             params['select'] = 'FIELDS(ALL)'
             # FIELDS(ALL) selection has a hard limit of 200
-            limit = 200
+            hard_limit = 200
 
-        # OFFSET has a hard limit of 2000, so max we can get is 2000 + limit
-        if count > 2000 + limit:
+        if limit:
+            count = min(limit, count)
+            hard_limit = min(limit, hard_limit)
+
+        # OFFSET has a hard limit of 2000, so max we can get is 2000 + hard_limit
+        if count > 2000 + hard_limit:
             raise ValueError(f'Query matches too many results ({count})')
 
-        params['limit'] = limit
+        params['limit'] = hard_limit
 
         results = self._query(**params)
         while results.totalSize < count:
