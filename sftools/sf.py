@@ -48,6 +48,10 @@ class SF(object):
     def oauth(self):
         return SFOAuth(self.config)
 
+    @cached_property
+    def me(self):
+        return self.User(self.restful('chatter/users/me').get('id'))
+
     @property
     def _salesforce_login_params(self):
         password_login_params = {
@@ -240,6 +244,10 @@ class SF(object):
             soql.OFFSET = results.totalSize
             results += self._query(soql)
         return results
+
+    def restful(self, path):
+        '''Perform direct rest api call'''
+        return self._salesforce_call('restful', path)
 
     def search(self, find, returning, *, escape_find=True):
         '''SF search (SOSL)
