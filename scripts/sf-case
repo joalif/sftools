@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+
+import sys
+
+from pathlib import Path
+
+# if called from git source, add parent dir to python path
+if Path(__file__).parent.name == 'scripts':
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from sftools.argparse import SFArgumentParser
+
+
+def main():
+    parser = SFArgumentParser()
+
+    label = parser.add_mutually_exclusive_group()
+    label.add_argument('--label', action='store_true',
+                       default=None,
+                       help='Print field name (default if more than 1 field)')
+    label.add_argument('--no-label', action='store_false',
+                       dest='label',
+                       help='Do not print field name (default if only 1 field)')
+
+    parser.add_argument('-f', '--field', action='append',
+                        help='Field(s) to display')
+
+    parser.add_argument('--limit',
+                        help='Limit number of matched cases')
+
+    case = parser.add_mutually_exclusive_group()
+    case.add_argument('-n', '--casenumber',
+                      help='Case number (or Case ID)')
+    case.add_argument('-C', '--comment',
+                      help='Case comment contains this text')
+    case.add_argument('-m', '--mycases', action='store_true',
+                      help='Cases owned by me (case owner or escalation owner)')
+    case.add_argument('-o', '--owner',
+                      help='Cases owner by owner (name or ID)')
+
+    action = parser.action_group
+
+    opts = parser.parse_args()
+
+    sf = parser.sf(opts, preload_fields=not opts.field)
+
+    cases = []
+    if opts.casenumber:
+        cases = [sf.Case(opts.casenumber)]
+    elif opts.comment:
+        cases = sf.CaseComment.contains(opts.comment, limit=opts.limit)
+    elif opts.mycases:
+        cases = sf.me.cases()
+    elif opts.owner:
+        cases = sf.User(opts.owner).cases()
+
+    for case in cases:
+        case.dumpfields(fields=opts.field, label=opts.label)
+
+
+if __name__ == "__main__":
+    main()
