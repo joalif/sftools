@@ -34,7 +34,7 @@ class SFCaseType(SFType, name='Case'):
     def query(self, where, *, only_open=True, **kwargs):
         '''Restrict queries to only open cases.'''
         if only_open:
-            where = WHERE_AND(where, 'IsClosed = FALSE')
+            where = f'({where}) AND (IsClosed = FALSE)'
         return super().query(where, **kwargs)
 
 

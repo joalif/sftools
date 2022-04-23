@@ -4,6 +4,7 @@
 
 import re
 
+from copy import copy
 from functools import cached_property
 from functools import lru_cache
 
@@ -17,6 +18,7 @@ from sftools.result import QueryResult
 from sftools.result import SearchResult
 from sftools.config import SFConfig
 from sftools.oauth import SFOAuth
+from sftools.soql import SOQL
 from sftools.type import SFType
 
 
@@ -165,32 +167,33 @@ class SF(object):
             print(f'SF evaluate: {e}')
         return eval(e, dict(sf=self, **globals()))
 
-    def _query(self, *, select, frm, where, orderby=None, limit=None, offset=None):
+    def soql(self, WHERE, **kwargs):
+        if not kwargs.get('SELECT') or not kwargs.get('FROM'):
+            l = WHERE.split()[0]
+            FROM, SELECT = l.split('.')
+            kwargs.setdefault('FROM', FROM)
+            kwargs.setdefault('SELECT', SELECT)
+        kwargs.setdefault('preload_fields', self.preload_fields)
+        return SOQL(WHERE=WHERE, **kwargs)
+
+    def _query(self, soql):
         '''Low-level SF query (SOQL)
 
         You should know what you're doing when you call this.
         '''
-        if ',' in frm:
-            raise ValueError(f'Invalid query, only support a single object in FROM: '
-                             f'from={frm}')
+        return QueryResult(self.sftype(soql.FROM), self._salesforce_call('query', soql.clause))
 
-        clause = f'SELECT {select} FROM {frm} WHERE {where}'
-        if orderby:
-            clause += f' ORDER BY {orderby}'
-        if limit:
-            clause += f' LIMIT {limit}'
-        if offset:
-            clause += f' OFFSET {offset}'
-        return QueryResult(self.sftype(frm), self._salesforce_call('query', clause))
-
-    def query_count(self, *, frm, where):
+    def query_count(self, soql):
         '''SF query (SOQL) count.
 
         This returns the number of results; this does not return the actual results.
         '''
-        return self._query(select='COUNT()', frm=frm, where=where).totalSize
+        soql = copy(soql)
+        soql.SELECT = 'COUNT()'
+        del soql.ORDER_BY
+        return self._query(soql).totalSize
 
-    def query(self, *, select, frm, where, orderby=None, limit=None, preload_fields=False):
+    def query(self, soql_or_where):
         '''SF query (SOQL)
 
         REST api:
@@ -200,44 +203,42 @@ class SF(object):
         SOAP api; note this has some more detail but this is not what we use:
         https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_calls_query.htm
 
-        Note since 'from' is a keyword, the parameter name is 'frm'
-
-        If 'preload_fields' is True, we will select ALL fields and ignore the 'select' parameter.
+        The 'soql' param can be either a SOQL object or WHERE field.
 
         Returns a QueryResult object.
         '''
-        params = {
-            'select': select,
-            'frm': frm,
-            'where': where,
-            'orderby': orderby or 'Id',
-        }
+        if isinstance(soql_or_where, str):
+            soql = self.soql(soql_or_where)
+        else:
+            soql = copy(soql_or_where)
 
         # Find out how many records we're going to get
-        count = self.query_count(frm=frm, where=where)
+        count = self.query_count(soql)
 
         # query() has a hard limit of 2000
         hard_limit = 2000
 
-        if preload_fields is True:
-            params['select'] = 'FIELDS(ALL)'
+        if soql.preload_fields is None:
+            soql.preload_fields = self.preload_fields
+        if soql.preload_fields is True:
+            soql.SELECT = 'FIELDS(ALL)'
             # FIELDS(ALL) selection has a hard limit of 200
             hard_limit = 200
 
-        if limit:
-            count = min(limit, count)
-            hard_limit = min(limit, hard_limit)
+        if soql.LIMIT:
+            count = min(soql.LIMIT, count)
+            hard_limit = min(soql.LIMIT, hard_limit)
 
         # OFFSET has a hard limit of 2000, so max we can get is 2000 + hard_limit
         if count > 2000 + hard_limit:
             raise ValueError(f'Query matches too many results ({count})')
 
-        params['limit'] = hard_limit
+        soql.LIMIT = hard_limit
 
-        results = self._query(**params)
+        results = self._query(soql)
         while results.totalSize < count:
-            params['offset'] = results.totalSize
-            results += self._query(**params)
+            soql.OFFSET = results.totalSize
+            results += self._query(soql)
         return results
 
     def search(self, find, returning, *, escape_find=True):

@@ -15,35 +15,7 @@ except ImportError:
 
 from sftools.object import SFObject
 from sftools.result import Record
-
-
-def SELECT(*args):
-    # Note this does NOT support sub-queries in the SELECT
-    return JOIN(',', args=chain.from_iterable([a.split(',') for a in args if a]))
-
-
-def JOIN(separator, left='', right='', args=[]):
-    args = [str(arg).strip() for arg in args if arg]
-    return separator.join(set([f'{left}{arg}{right}' for arg in args if arg]))
-
-
-def WHERE_AND(*args):
-    return JOIN(' AND ', '(', ')', args)
-
-
-def WHERE_OR(*args):
-    return JOIN(' OR ', '(', ')', args)
-
-
-def WHERE_IN(name, *args):
-    inlist = JOIN(',', "'", "'", args)
-    if not inlist:
-        return ''
-    return f'{name} IN ({inlist})'
-
-
-def WHERE_LIKE(name, value):
-    return f"{name} LIKE '%{value}%'"
+from sftools.soql import SOQL
 
 
 class SFType(object):
@@ -105,7 +77,7 @@ class SFType(object):
 
     @cached_property
     def _where_recordtypeids(self):
-        return WHERE_IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
+        return SOQL.WHERE_IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
@@ -142,24 +114,20 @@ class SFType(object):
             return self.query(where=f"Id = '{id_or_record}'").sfobject
         return None
 
-    def query(self, where, *, select=None, preload_fields=None, **kwargs):
+    def query(self, where, *, select=None, limit=None, preload_fields=None):
         '''Query this specific SFType.
 
         The 'where' parameter should be in standard SOQL format:
         https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_conditionexpression.htm
 
-        The 'select' parameter, if provided, must be a string of comma-separated fields.
+        The 'select' parameter, if provided, must be a list of fields,
+        or a string of comma-separated fields.
 
         If 'preload_fields' is None, it will default to our SF object preload_fields value.
 
         Returns a QueryResult of matching SFObjects of this SFType.
         '''
-        if preload_fields is None:
-            preload_fields = self._sf.preload_fields
-        select = SELECT(select, 'Id')
-        where = WHERE_AND(where, self._where_recordtypeids)
-        return self._sf.query(select=select,
-                              frm=self.name,
-                              where=where,
-                              preload_fields=preload_fields,
-                              **kwargs)
+        soql = SOQL(SELECT='Id', FROM=self.name, WHERE=self._where_recordtypeids, LIMIT=limit, preload_fields=preload_fields)
+        soql.SELECT_AND(select)
+        soql.WHERE_AND(where)
+        return self._sf.query(soql)
