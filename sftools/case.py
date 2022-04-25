@@ -5,6 +5,7 @@
 from functools import cached_property
 
 from sftools.object import SFObject
+from sftools.soql import WhereUtil
 from sftools.type import SFType
 
 
@@ -43,7 +44,7 @@ class SFCaseType(SFType, name='Case'):
 
     @cached_property
     def _where_recordtypeids(self):
-        return SOQL.WHERE_IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
+        return WhereUtil.IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
 
     def query(self, where, *, only_open=True, only_active_record_type_ids=True, **kwargs):
         '''Case type query.
@@ -52,9 +53,9 @@ class SFCaseType(SFType, name='Case'):
         as well as only cases with active record type ids. Both default to True.
         '''
         if only_open:
-            where = SOQL.WHERE_AND('IsClosed = FALSE')
+            where = WhereUtil.AND(where, 'IsClosed = FALSE')
         if only_active_record_type_ids:
-            where = SOQL.WHERE_AND(self._where_recordtypeids)
+            where = WhereUtil.AND(where, self._where_recordtypeids)
         return super().query(where, **kwargs)
 
 

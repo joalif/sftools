@@ -3,35 +3,6 @@ from collections import UserString
 
 
 class SOQL(object):
-    @classmethod
-    def WHERE_IN(cls, name, *args):
-        if not name:
-            return None
-        inlist = [f"'{a}'" for a in args if a]
-        if not inlist:
-            return None
-        return f'{name} IN ({",".join(inlist)})'
-
-    @classmethod
-    def WHERE_LIKE(cls, name, value):
-        if not name:
-            return None
-        if not value:
-            return None
-        return f"{name} LIKE '%{value}%'"
-
-    @classmethod
-    def WHERE_JOIN(cls, action, *args):
-        return f' {action} '.join([f'({a})' for a in args if a])
-
-    @classmethod
-    def WHERE_AND(cls, *args):
-        return cls.WHERE_JOIN('AND', *args)
-
-    @classmethod
-    def WHERE_OR(cls, *args):
-        return cls.WHERE_JOIN('OR', *args)
-
     def __init__(self, *,
                  SELECT=None,
                  FROM=None,
@@ -87,6 +58,19 @@ class SOQL(object):
         '''
         self._WHERE = value
 
+    def _WHERE_ARGS(self, *args):
+        if self.WHERE not in args:
+            args = (self.WHERE, *args)
+        return args
+
+    def WHERE_AND(self, *args):
+        self.WHERE = WhereUtil.AND(self._WHERE_ARGS(*args))
+        return self.WHERE
+
+    def WHERE_OR(self, *args):
+        self.WHERE = WhereUtil.OR(self._WHERE_ARGS(*args))
+        return self.WHERE
+
     @property
     def ORDER_BY(self) -> list:
         return self._ORDER_BY
@@ -138,3 +122,34 @@ class SOQL(object):
 
     def __repr__(self):
         return self.clause
+
+
+class WhereUtil(object):
+    @classmethod
+    def IN(cls, name, *args):
+        if not name:
+            return None
+        inlist = [f"'{a}'" for a in args if a]
+        if not inlist:
+            return None
+        return f'{name} IN ({",".join(inlist)})'
+
+    @classmethod
+    def LIKE(cls, name, value):
+        if not name:
+            return None
+        if not value:
+            return None
+        return f"{name} LIKE '%{value}%'"
+
+    @classmethod
+    def JOIN(cls, action, *args):
+        return f' {action} '.join([f'({a})' for a in args if a])
+
+    @classmethod
+    def AND(cls, *args):
+        return cls.WHERE_JOIN('AND', *args)
+
+    @classmethod
+    def OR(cls, *args):
+        return cls.WHERE_JOIN('OR', *args)

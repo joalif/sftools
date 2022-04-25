@@ -42,6 +42,6 @@ class SFUserObject(SFObject, name='User'):
             if 'Owner' in name and f.get('type') == 'reference':
                 soql = SOQL(SELECT='Id', FROM='Case', WHERE=f"{name} = '{self.Id}'")
                 if only_open:
-                    soql.WHERE = soql.WHERE_AND('IsClosed = False')
+                    soql.WHERE_AND('IsClosed = False')
                 cases.extend(self._sf.query(soql).Id)
         return [self._sf.Case(Id) for Id in cases]

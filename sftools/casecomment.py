@@ -5,7 +5,7 @@
 from functools import cached_property
 
 from sftools.object import SFObject
-from sftools.soql import SOQL
+from sftools.soql import WhereUtil
 from sftools.type import SFType
 
 
@@ -16,7 +16,7 @@ class SFCaseCommentType(SFType, name='CaseComment'):
 
         Returns a QueryResult of matching CaseComment objects.
         '''
-        self.query(where=SOQL.WHERE_LIKE('CommentBody', searchstring), limit=limit)
+        self.query(where=WhereUtil.WHERE_LIKE('CommentBody', searchstring), limit=limit)
 
 
 class SFCaseCommentObject(SFObject, name='CaseComment'):
