@@ -92,7 +92,7 @@ class SOQL(object):
 
     @LIMIT.setter
     def LIMIT(self, value: int):
-        self._LIMIT = value
+        self._LIMIT = int(value or 0)
 
     @property
     def OFFSET(self) -> int:
@@ -100,7 +100,7 @@ class SOQL(object):
 
     @OFFSET.setter
     def OFFSET(self, value: int):
-        self._OFFSET = value
+        self._OFFSET = int(value or 0)
 
     @property
     def clause(self):

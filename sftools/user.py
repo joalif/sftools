@@ -35,13 +35,19 @@ class SFUserType(SFType, name='User'):
 
 class SFUserObject(SFObject, name='User'):
     '''SF User Object.'''
-    def cases(self, only_open=True):
+    def cases(self, only_open=True, limit=None):
+        if limit:
+            limit = int(limit)
         cases = []
         for f in self._sf.Case._fields:
             name = f.get('name')
             if 'Owner' in name and f.get('type') == 'reference':
-                soql = SOQL(SELECT='Id', FROM='Case', WHERE=f"{name} = '{self.Id}'")
+                soql = SOQL(SELECT='Id', FROM='Case', WHERE=f"{name} = '{self.Id}'", LIMIT=limit)
                 if only_open:
                     soql.WHERE_AND('IsClosed = False')
                 cases.extend(self._sf.query(soql).Id)
+            if limit and len(cases) >= limit:
+                break
+        if limit:
+            cases = cases[:limit]
         return [self._sf.Case(Id) for Id in cases]
