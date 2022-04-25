@@ -1,0 +1,52 @@
+#!/usr/bin/python3
+
+import argparse
+import sys
+
+from pathlib import Path
+
+# if called from git source, add parent dir to python path
+if Path(__file__).parent.name == 'scripts':
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from sftools.argparse import SFObjectArgumentParser
+
+
+def main():
+    parser = SFObjectArgumentParser()
+    parser.description = ('SOQL WHERE syntax: https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_conditionexpression.htm')
+
+    action = parser.action_group
+    action.add_argument('--list-types', action='store_true',
+                        help='List all valid object types')
+
+    parser.add_argument('--from',
+                        help='The SOQL FROM object type, if not specified in WHERE')
+    parser.add_argument('where', nargs='*',
+                        help='The SOQL WHERE clause')
+
+    opts = parser.parse_args()
+
+    sf = parser.sf(opts)
+
+    where = ' '.join(opts.where)
+    sftype = None
+    if getattr(opts, 'from'):
+        sftype = sf.sftype(getattr(opts, 'from'))
+    elif where:
+        type_field = where.split()[0]
+        if '.' in type_field:
+            sftype = sf.sftype(type_field.split('.')[0])
+
+    if sftype:
+        if opts.list_types:
+            for field in sftype.fieldnames:
+                print(field)
+        elif where:
+            select = ','.join(opts.field)
+            results = sftype.query(where, select=select, limit=opts.limit)
+            parser.dumpfields(opts, results)
+
+
+if __name__ == "__main__":
+    main()
