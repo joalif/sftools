@@ -31,10 +31,30 @@ class SFCaseType(SFType, name='Case'):
 
         return number
 
-    def query(self, where, *, only_open=True, **kwargs):
-        '''Restrict queries to only open cases.'''
+    @cached_property
+    def _recordtypeinfos(self):
+        return self.describe().get('recordTypeInfos')
+
+    @cached_property
+    def _recordtypeids(self):
+        '''Note this filters out non-active RecordTypes'''
+        return tuple([f.get('recordTypeId') for f in self._recordtypeinfos
+                      if f.get('active')])
+
+    @cached_property
+    def _where_recordtypeids(self):
+        return SOQL.WHERE_IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
+
+    def query(self, where, *, only_open=True, only_active_record_type_ids=True, **kwargs):
+        '''Case type query.
+
+        This adds parameters to allow restricting query to only open cases,
+        as well as only cases with active record type ids. Both default to True.
+        '''
         if only_open:
-            where = f'({where}) AND (IsClosed = FALSE)'
+            where = SOQL.WHERE_AND('IsClosed = FALSE')
+        if only_active_record_type_ids:
+            where = SOQL.WHERE_AND(self._where_recordtypeids)
         return super().query(where, **kwargs)
 
 

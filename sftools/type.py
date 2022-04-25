@@ -65,20 +65,6 @@ class SFType(object):
     def _fieldnames(self):
         return tuple([f.get('name') for f in self._fields])
 
-    @cached_property
-    def _recordtypeinfos(self):
-        return self.describe().get('recordTypeInfos')
-
-    @cached_property
-    def _recordtypeids(self):
-        '''Note this filters out non-active RecordTypes'''
-        return tuple([f.get('recordTypeId') for f in self._recordtypeinfos
-                      if f.get('active')])
-
-    @cached_property
-    def _where_recordtypeids(self):
-        return SOQL.WHERE_IN(f'{self.name}.RecordTypeId', *self._recordtypeids)
-
     def __getattr__(self, attr):
         if attr.startswith('_'):
             raise AttributeError(f'{self.name} has no attribute {attr}')
@@ -127,7 +113,6 @@ class SFType(object):
 
         Returns a QueryResult of matching SFObjects of this SFType.
         '''
-        soql = SOQL(SELECT='Id', FROM=self.name, WHERE=self._where_recordtypeids, LIMIT=limit, preload_fields=preload_fields)
+        soql = SOQL(SELECT='Id', FROM=self.name, WHERE=where, LIMIT=limit, preload_fields=preload_fields)
         soql.SELECT_AND(select)
-        soql.WHERE_AND(where)
         return self._sf.query(soql)

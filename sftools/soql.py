@@ -3,8 +3,8 @@ from collections import UserString
 
 
 class SOQL(object):
-    @staticmethod
-    def WHERE_IN(name, *args):
+    @classmethod
+    def WHERE_IN(cls, name, *args):
         if not name:
             return None
         inlist = [f"'{a}'" for a in args if a]
@@ -12,13 +12,25 @@ class SOQL(object):
             return None
         return f'{name} IN ({",".join(inlist)})'
 
-    @staticmethod
-    def WHERE_LIKE(name, value):
+    @classmethod
+    def WHERE_LIKE(cls, name, value):
         if not name:
             return None
         if not value:
             return None
         return f"{name} LIKE '%{value}%'"
+
+    @classmethod
+    def WHERE_JOIN(cls, action, *args):
+        return f' {action} '.join([f'({a})' for a in args if a])
+
+    @classmethod
+    def WHERE_AND(cls, *args):
+        return cls.WHERE_JOIN('AND', *args)
+
+    @classmethod
+    def WHERE_OR(cls, *args):
+        return cls.WHERE_JOIN('OR', *args)
 
     def __init__(self, *,
                  SELECT=None,
@@ -74,16 +86,6 @@ class SOQL(object):
         https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_conditionexpression.htm
         '''
         self._WHERE = value
-
-    def _WHERE_ACTION(self, action, *args):
-        args = [self.WHERE] + list(args)
-        self.WHERE = f' {action} '.join([f'({a})' for a in args if a])
-
-    def WHERE_AND(self, *args):
-        self._WHERE_ACTION('AND', *args)
-
-    def WHERE_OR(self, *args):
-        self._WHERE_ACTION('OR', *args)
 
     @property
     def ORDER_BY(self) -> list:
