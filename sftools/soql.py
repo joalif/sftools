@@ -3,6 +3,11 @@ from collections import UserString
 
 
 class SOQL(object):
+    '''SOQL query object.
+
+    SOQL syntax:
+    https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select.htm
+    '''
     def __init__(self, *,
                  SELECT=None,
                  FROM=None,

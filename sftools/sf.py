@@ -207,6 +207,9 @@ class SF(object):
         SOAP api; note this has some more detail but this is not what we use:
         https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_calls_query.htm
 
+        SOQL syntax:
+        https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select.htm
+
         The 'soql' param can be either a SOQL object or WHERE field.
 
         Returns a QueryResult object.
