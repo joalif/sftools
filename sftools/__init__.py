@@ -9,5 +9,8 @@ from .case import *
 from .casecomment import *
 from .user import *
 
+# Custom modules, for non-standard type/object deployments
+from .custom import *
+
 
 __all__ = ['SF']
