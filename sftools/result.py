@@ -56,7 +56,7 @@ class Result(Sequence, ABC):
         return list(filter(None, set([getattr(o, attr, None) for o in self.sfobjects])))
 
     def __dir__(self):
-        return list(filter(None, (set(self._sftype._fieldnames) |
+        return list(filter(None, (set(self._sftype.fieldnames) |
                                   set(super().__dir__()) |
                                   set(dir(SFObject.getclass(self._sftype.name))))))
 

@@ -58,12 +58,12 @@ class SFType(object):
         self._sftype._call_salesforce = partial(wrapper, self._sftype._call_salesforce)
 
     @cached_property
-    def _fields(self):
+    def fields(self):
         return self.describe().get('fields')
 
     @cached_property
-    def _fieldnames(self):
-        return tuple([f.get('name') for f in self._fields])
+    def fieldnames(self):
+        return tuple([f.get('name') for f in self.fields])
 
     def __getattr__(self, attr):
         if attr.startswith('_'):

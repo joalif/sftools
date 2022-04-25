@@ -39,7 +39,7 @@ class SFUserObject(SFObject, name='User'):
         if limit:
             limit = int(limit)
         cases = []
-        for f in self._sf.Case._fields:
+        for f in self._sf.Case.fields:
             name = f.get('name')
             if 'Owner' in name and f.get('type') == 'reference':
                 soql = SOQL(SELECT='Id', FROM='Case', WHERE=f"{name} = '{self.Id}'", LIMIT=limit)

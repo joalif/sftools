@@ -48,7 +48,7 @@ class SFObject(object):
         return self.record.get('Id')
 
     def __dir__(self):
-        return list(set(self._sftype._fieldnames) | set(super().__dir__()))
+        return list(set(self._sftype.fieldnames) | set(super().__dir__()))
 
     def __getattr__(self, attr):
         if attr not in self.__dir__():
@@ -69,7 +69,7 @@ class SFObject(object):
 
     def dumpfields(self, fields=None, label=None):
         if not fields:
-            fields = self._sftype._fieldnames
+            fields = self._sftype.fieldnames
         if label is None:
             label = len(fields) != 1
         for f in fields:
