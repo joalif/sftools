@@ -47,3 +47,45 @@ class SFArgumentParser(argparse.ArgumentParser):
             sf.config.show(full=True)
 
         return sf
+
+
+class SFObjectArgumentParser(SFArgumentParser):
+    def __init__(self, *args, default_fields=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.default_fields = default_fields
+
+        label = self.add_mutually_exclusive_group()
+        label.add_argument('--label', action='store_true',
+                           default=None,
+                           help='Print field name (default if more than 1 field)')
+        label.add_argument('--no-label', action='store_false',
+                           dest='label',
+                           help='Do not print field name (default if only 1 field)')
+
+        field_help = 'Field(s) to display'
+        if default_fields:
+            field_help += f' (default {",".join(default_fields)})'
+        else:
+            field_help += f' (default all fields)'
+        field_group = self.add_mutually_exclusive_group()
+        field_group.add_argument('-f', '--field', action='append',
+                                 help=field_help)
+        field_group.add_argument('--all-fields', action='store_true',
+                                 help='Display all fields')
+
+        self.add_argument('--limit',
+                          help='Limit number of matched objects')
+
+    def parse_args(self, *args, **kwargs):
+        opts = super().parse_args(*args, **kwargs)
+
+        if opts.all_fields:
+            opts.field = []
+        elif not opts.field and self.default_fields:
+            opts.field = self.default_fields
+
+        return opts
+
+    def dumpfields(self, opts, objects):
+        for o in objects:
+            o.dumpfields(fields=opts.field, label=opts.label)
