@@ -3,6 +3,7 @@
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
 from functools import cached_property
+from functools import lru_cache
 
 from sftools.object import SFObject
 from sftools.soql import WhereUtil
@@ -61,7 +62,7 @@ class SFCaseType(SFType, name='Case'):
 
 class SFCaseObject(SFObject, name='Case'):
     '''SF Case Object.'''
-    @cached_property
+    @lru_cache
     def comments(self):
         '''Get all CaseComments for this Case.
 
