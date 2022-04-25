@@ -11,5 +11,6 @@ setup(
     ],
     scripts=[
         'scripts/sf-shell',
+        'scripts/sf-case',
     ],
 )
