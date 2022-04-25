@@ -86,6 +86,10 @@ class SFObjectArgumentParser(SFArgumentParser):
 
         return opts
 
+    def sf(self, opts, *args, **kwargs):
+        kwargs.setdefault('preload_fields', not opts.field)
+        return super().sf(opts, *args, **kwargs)
+
     def dumpfields(self, opts, objects):
         for o in objects:
             o.dumpfields(fields=opts.field, label=opts.label)

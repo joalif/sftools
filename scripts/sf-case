@@ -24,11 +24,9 @@ def main():
     cases_group.add_argument('-o', '--owner',
                              help='Cases owner by owner (name or ID)')
 
-    action = parser.action_group
-
     opts = parser.parse_args()
 
-    sf = parser.sf(opts, preload_fields=not opts.field)
+    sf = parser.sf(opts)
 
     cases = []
     if opts.casenumber:
