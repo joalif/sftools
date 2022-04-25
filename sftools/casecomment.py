@@ -16,7 +16,7 @@ class SFCaseCommentType(SFType, name='CaseComment'):
 
         Returns a QueryResult of matching CaseComment objects.
         '''
-        self.query(where=WhereUtil.WHERE_LIKE('CommentBody', searchstring), limit=limit)
+        self.query(where=WhereUtil.LIKE('CommentBody', searchstring), limit=limit)
 
 
 class SFCaseCommentObject(SFObject, name='CaseComment'):

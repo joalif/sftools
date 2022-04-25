@@ -64,11 +64,11 @@ class SOQL(object):
         return args
 
     def WHERE_AND(self, *args):
-        self.WHERE = WhereUtil.AND(self._WHERE_ARGS(*args))
+        self.WHERE = WhereUtil.AND(*self._WHERE_ARGS(*args))
         return self.WHERE
 
     def WHERE_OR(self, *args):
-        self.WHERE = WhereUtil.OR(self._WHERE_ARGS(*args))
+        self.WHERE = WhereUtil.OR(*self._WHERE_ARGS(*args))
         return self.WHERE
 
     @property
@@ -148,8 +148,8 @@ class WhereUtil(object):
 
     @classmethod
     def AND(cls, *args):
-        return cls.WHERE_JOIN('AND', *args)
+        return cls.JOIN('AND', *args)
 
     @classmethod
     def OR(cls, *args):
-        return cls.WHERE_JOIN('OR', *args)
+        return cls.JOIN('OR', *args)
