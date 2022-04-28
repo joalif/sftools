@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+import dateparser
+import sys
+
+from pathlib import Path
+
+# if called from git source, add parent dir to python path
+if Path(__file__).parent.name == 'scripts':
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from sftools.argparse import SFObjectArgumentParser
+
+
+def main():
+    parser = SFObjectArgumentParser(default_fields=['CaseId__c', 'TotalMinutesStatic__c'])
+
+    parser.add_argument('-n', '--casenumber', action='append',
+                        help='Case number (or Case ID)')
+    parser.add_argument('-t', '--timecardid', action='append',
+                        help='Timecard id')
+    parser.add_argument('-m', '--mytimecards', action='store_true',
+                        help='Timecards owned by me')
+    parser.add_argument('-o', '--owner',
+                        help='Timecards owned by owner (name or ID)')
+
+    parser.add_argument('-B', '--before',
+                        help='Only timecards with start time at or before this time')
+    parser.add_argument('-A', '--after',
+                        help='Only timecards with start time at or after this time')
+    parser.add_argument('--larger',
+                        help='Only timecards with minutes at or more than this')
+    parser.add_argument('--smaller',
+                        help='Only timecards with minutes at or less than this')
+
+    opts = parser.parse_args()
+    sf = opts.SF()
+
+    kwargs = opts.query_kwargs
+    if opts.before:
+        kwargs['before'] = dateparser.parse(opts.before)
+    if opts.after:
+        kwargs['after'] = dateparser.parse(opts.after)
+    if opts.larger:
+        kwargs['larger'] = opts.larger
+    if opts.smaller:
+        kwargs['smaller'] = opts.smaller
+
+    timecards = []
+    if opts.casenumber:
+        for n in opts.casenumber:
+            case = sf.Case(n)
+            if case:
+                timecards.extend(case.timecards(**kwargs))
+
+    if opts.timecardid:
+        for i in opts.timecardid:
+            timecard = sf.TimeCard__c(i)
+            if timecard:
+                timecards.append(timecard)
+
+    if opts.mytimecards:
+        timecards.extend(sf.me.timecards(**kwargs))
+
+    if opts.owner:
+        for o in opts.owner:
+            owner = sf.User(o)
+            if owner:
+                timecards.extend(owner.timecards(**kwargs))
+
+    parser.dumpfields(opts, timecards)
+
+
+if __name__ == "__main__":
+    main()
