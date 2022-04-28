@@ -1,6 +1,8 @@
 
 import argparse
 
+from functools import partial
+
 from sftools.sf import SF
 from sftools.config import SFConfig
 
@@ -83,6 +85,13 @@ class SFObjectArgumentParser(SFArgumentParser):
             opts.field = []
         elif not opts.field and self.default_fields:
             opts.field = self.default_fields
+
+        opts.SF = partial(self.sf, opts)
+        opts.dumpfields = partial(self.dumpfields, opts)
+        opts.query_kwargs = {
+            'LIMIT': opts.limit,
+            'SELECT': opts.field,
+        }
 
         return opts
 

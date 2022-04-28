@@ -26,8 +26,7 @@ def main():
                         help='The SOQL WHERE clause')
 
     opts = parser.parse_args()
-
-    sf = parser.sf(opts)
+    sf = opts.SF()
 
     where = ' '.join(opts.where)
     sftype = None
@@ -43,8 +42,7 @@ def main():
             for field in sftype.fieldnames:
                 print(field)
         elif where:
-            select = ','.join(opts.field)
-            results = sftype.query(where, select=select, limit=opts.limit)
+            results = sftype.query(where, **opts.query_kwargs)
             parser.dumpfields(opts, results)
 
 

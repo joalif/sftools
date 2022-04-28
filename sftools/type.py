@@ -100,19 +100,14 @@ class SFType(object):
             return self.query(where=f"Id = '{id_or_record}'").sfobject
         return None
 
-    def query(self, where, *, select=None, limit=None, preload_fields=None):
+    def query(self, where, **kwargs):
         '''Query this specific SFType.
 
         The 'where' parameter should be in standard SOQL format:
         https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_conditionexpression.htm
 
-        The 'select' parameter, if provided, must be a list of fields,
-        or a string of comma-separated fields.
-
-        If 'preload_fields' is None, it will default to our SF object preload_fields value.
-
         Returns a QueryResult of matching SFObjects of this SFType.
         '''
-        soql = SOQL(SELECT='Id', FROM=self.name, WHERE=where, LIMIT=limit, preload_fields=preload_fields)
-        soql.SELECT_AND(select)
+        soql = SOQL(FROM=self.name, WHERE=where, **kwargs)
+        soql.SELECT_AND('Id')
         return self._sf.query(soql)

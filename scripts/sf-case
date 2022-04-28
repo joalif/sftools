@@ -25,20 +25,19 @@ def main():
                              help='Cases owner by owner (name or ID)')
 
     opts = parser.parse_args()
-
-    sf = parser.sf(opts)
+    sf = opts.SF()
 
     cases = []
     if opts.casenumber:
         cases = [sf.Case(opts.casenumber)]
     elif opts.comment:
-        cases = sf.CaseComment.contains(opts.comment, limit=opts.limit)
+        cases = sf.CaseComment.contains(opts.comment, **opts.query_kwargs)
     elif opts.mycases:
-        cases = sf.me.cases(limit=opts.limit)
+        cases = sf.me.cases(**opts.query_kwargs)
     elif opts.owner:
-        cases = sf.User(opts.owner).cases(limit=opts.limit)
+        cases = sf.User(opts.owner).cases(**opts.query_kwargs)
 
-    parser.dumpfields(opts, cases)
+    opts.dumpfields(cases)
 
 
 if __name__ == "__main__":

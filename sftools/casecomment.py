@@ -11,12 +11,12 @@ from sftools.type import SFType
 
 class SFCaseCommentType(SFType, name='CaseComment'):
     '''SF Case Type.'''
-    def contains(self, searchstring, limit=None):
+    def contains(self, searchstring, **kwargs):
         '''Search all CaseComments for the searchstring.
 
         Returns a QueryResult of matching CaseComment objects.
         '''
-        self.query(where=WhereUtil.LIKE('CommentBody', searchstring), limit=limit)
+        self.query(where=WhereUtil.LIKE('CommentBody', searchstring), **kwargs)
 
 
 class SFCaseCommentObject(SFObject, name='CaseComment'):
