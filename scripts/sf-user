@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+import sys
+
+from pathlib import Path
+
+# if called from git source, add parent dir to python path
+if Path(__file__).parent.name == 'scripts':
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from sftools.argparse import SFObjectArgumentParser
+from sftools.soql import WhereUtil
+
+
+def main():
+    parser = SFObjectArgumentParser(default_fields=['Name', 'Username', 'Alias'])
+
+    parser.add_argument('-u', '--userid', action='append',
+                        help='User Id (or Alias)')
+    parser.add_argument('-n', '--name',
+                        help='User name is or contains this value')
+
+    opts = parser.parse_args()
+    sf = opts.SF()
+
+    users = []
+    if opts.userid:
+        for i in opts.userid:
+            user = sf.User(i)
+            if user:
+                users.append(user)
+
+    if opts.name:
+        matches = sf.User.query(WhereUtil.LIKE('Name', opts.name),
+                             **opts.query_kwargs)
+        if matches:
+            users.extend(matches)
+
+    opts.dumpfields(users)
+
+
+if __name__ == "__main__":
+    main()
