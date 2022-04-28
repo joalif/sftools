@@ -29,7 +29,8 @@ class SOQL(object):
             return [default] if default else []
         if not isinstance(value, list):
             value = [v.strip() for v in value.split(',')]
-        return [v for v in value if v]
+        # use a dict instead of set to retain ordering, but remove dups
+        return list(dict([(v, None) for v in value if v]).keys())
 
     @property
     def SELECT(self) -> list:
@@ -40,7 +41,7 @@ class SOQL(object):
         self._SELECT = self.list_from_csv(value)
 
     def SELECT_AND(self, value: list):
-        self._SELECT.extend(self.list_from_csv(value))
+        self.SELECT += self.list_from_csv(value)
 
     @property
     def FROM(self) -> str:
@@ -89,7 +90,7 @@ class SOQL(object):
         self._ORDER_BY = []
 
     def ORDER_BY_AND(self, value: list):
-        self._ORDER_BY.extend(self.list_from_csv(value))
+        self.ORDER_BY += self.list_from_csv(value)
 
     @property
     def LIMIT(self) -> int:
