@@ -32,6 +32,21 @@ class SFObject(object):
         self._name = sftype.name
         self._record = record
 
+    def delete(self, raw_response=None):
+        '''DELETE this object.
+
+        This will delete this object - be careful!
+
+        If 'raw_response' is not None, it is passed on to simple-salesforce;
+        see the docs for delete() there for details on its use.
+
+        Returns the status code of the operation (unless raw_response is True).
+        '''
+        if raw_response is not None:
+            return self._sf.delete(self.Id, raw_response=raw_response)
+        else:
+            return self._sf.delete(self.Id)
+
     @property
     def record(self):
         '''Get our Record.
