@@ -75,7 +75,7 @@ class SFObjectArgumentParser(SFArgumentParser):
         field_group.add_argument('--all-fields', action='store_true',
                                  help='Display all fields')
 
-        self.add_argument('--limit',
+        self.add_argument('--limit', type=int, default=0,
                           help='Limit number of matched objects')
 
     def parse_args(self, *args, **kwargs):
@@ -100,5 +100,7 @@ class SFObjectArgumentParser(SFArgumentParser):
         return super().sf(opts, *args, **kwargs)
 
     def dumpfields(self, opts, objects):
+        if opts.limit:
+            objects = objects[:opts.limit]
         for o in objects:
             o.dumpfields(fields=opts.field, label=opts.label)
