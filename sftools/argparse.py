@@ -1,5 +1,6 @@
 
 import argparse
+import time
 
 from functools import partial
 from types import SimpleNamespace
@@ -92,6 +93,7 @@ class SFObjectArgumentParser(SFArgumentParser):
             print(opts)
 
         opts.functions.SF = partial(self.sf, opts)
+        opts.functions.delete = partial(self.delete, opts)
         opts.functions.dumpfields = partial(self.dumpfields, opts)
         opts.query_kwargs = {
             'LIMIT': opts.limit,
@@ -104,8 +106,19 @@ class SFObjectArgumentParser(SFArgumentParser):
         kwargs.setdefault('preload_fields', not opts.field)
         return super().sf(opts, *args, **kwargs)
 
-    def dumpfields(self, opts, objects):
+    def limit_objects(self, opts, objects):
         if opts.limit:
-            objects = objects[:opts.limit]
+            return objects[:opts.limit]
+        return objects
+
+    def delete(self, opts, objects):
+        objects = self.limit_objects(opts, objects)
+        for o in objects:
+            print(f'DELETING object Id {o.Id}')
+            time.sleep(1)
+            o.delete()
+
+    def dumpfields(self, opts, objects):
+        objects = self.limit_objects(opts, objects)
         for o in objects:
             o.dumpfields(fields=opts.field, label=opts.label)
