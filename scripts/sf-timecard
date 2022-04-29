@@ -52,7 +52,7 @@ def main():
                        help='Print total time in minutes')
 
     opts = parser.parse_args()
-    sf = opts.SF()
+    sf = opts.functions.SF()
     kwargs = opts.query_kwargs
 
     if opts.this_month or opts.last_month:
@@ -140,7 +140,7 @@ def main():
         elif opts.total_minutes:
             print(f'Total time: {total_time} minutes')
     else:
-        parser.dumpfields(opts, timecards)
+        opts.functions.dumpfields(timecards)
 
 
 if __name__ == "__main__":

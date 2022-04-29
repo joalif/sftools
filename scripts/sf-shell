@@ -38,7 +38,7 @@ def main():
     elif opts.preload_fields:
         kwargs['preload_fields'] = True
 
-    sf = parser.sf(opts, **kwargs)
+    sf = opts.functions.SF(**kwargs)
 
     if opts.oauth:
         sf.request_oauth()

@@ -2,6 +2,7 @@
 import argparse
 
 from functools import partial
+from types import SimpleNamespace
 
 from sftools.sf import SF
 from sftools.config import SFConfig
@@ -80,14 +81,15 @@ class SFObjectArgumentParser(SFArgumentParser):
 
     def parse_args(self, *args, **kwargs):
         opts = super().parse_args(*args, **kwargs)
+        opts.functions = SimpleNamespace()
 
         if opts.all_fields:
             opts.field = []
         elif not opts.field and self.default_fields:
             opts.field = self.default_fields
 
-        opts.SF = partial(self.sf, opts)
-        opts.dumpfields = partial(self.dumpfields, opts)
+        opts.functions.SF = partial(self.sf, opts)
+        opts.functions.dumpfields = partial(self.dumpfields, opts)
         opts.query_kwargs = {
             'LIMIT': opts.limit,
             'SELECT': opts.field,

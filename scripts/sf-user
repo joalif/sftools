@@ -25,7 +25,7 @@ def main():
                         help='User name is or contains this value')
 
     opts = parser.parse_args()
-    sf = opts.SF()
+    sf = opts.function.SF()
 
     users = []
     if opts.me:
@@ -50,7 +50,7 @@ def main():
         if matches:
             users.extend(matches)
 
-    opts.dumpfields(users)
+    opts.functions.dumpfields(users)
 
 
 if __name__ == "__main__":
