@@ -2,7 +2,11 @@
 #
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
-from functools import partial
+import dateparser
+
+from datetime import datetime
+from datetime import timezone
+from functools import partialmethod
 
 from sftools.case import SFCaseObject
 from sftools.object import SFObject
@@ -11,16 +15,22 @@ from sftools.type import SFType
 from sftools.user import SFUserObject
 
 
-def timecards_from(funcname, obj, **kwargs):
-    return getattr(obj._sf.sftype('TimeCard__c'), 'funcname')(obj, **kwargs)
+SETTINGS_FORCE_UTC = {
+    'RETURN_AS_TIMEZONE_AWARE': True,
+    'TO_TIMEZONE': 'UTC',
+}
+
+
+def timecards_from(obj, funcname, **kwargs):
+    return getattr(obj._sf.sftype('TimeCard__c'), funcname)(obj, **kwargs)
 
 
 # Extend SFCaseObject with timecards()
-SFCaseObject.timecards = partial(timecards_from, 'fromcase')
+SFCaseObject.timecards = partialmethod(timecards_from, 'fromcase')
 
 
 # Extend SFUserObject with timecards()
-SFUserObject.timecards = partial(timecards_from, 'fromuser')
+SFUserObject.timecards = partialmethod(timecards_from, 'fromuser')
 
 
 class SFTimeCardType(SFType, name='TimeCard__c'):
@@ -31,9 +41,19 @@ class SFTimeCardType(SFType, name='TimeCard__c'):
     def fromuser(self, user, **kwargs):
         return self.query(f"OwnerId__c = '{user.Id}'", **kwargs)
 
+    def parsedatetime(self, value):
+        if value:
+            if not isinstance(value, datetime):
+                value = dateparser.parse(value, settings=SETTINGS_FORCE_UTC)
+            if not value.tzinfo:
+                value = value.replace(tzinfo=timezone.utc)
+        return value
+
     def query(self, where, *, before=None, after=None, smaller=None, larger=None, **kwargs):
+        before = self.parsedatetime(before)
         if before:
-            where = WhereUtil.AND(where, f"EndTime__c <= {before.isoformat()}")
+            where = WhereUtil.AND(where, f"StartTime__c <= {before.isoformat()}")
+        after = self.parsedatetime(after)
         if after:
             where = WhereUtil.AND(where, f"StartTime__c >= {after.isoformat()}")
         if larger:
