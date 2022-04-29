@@ -13,7 +13,10 @@ from sftools.argparse import SFObjectArgumentParser
 
 
 def main():
-    parser = SFObjectArgumentParser(default_fields=['CaseId__c', 'TotalMinutesStatic__c'])
+    epilog = ('The parameter --after defaults to 1 year ago, to avoid matching too many results, '
+              'and --larger defaults to 1 (minute) to avoid timecards with no logged time.')
+    parser = SFObjectArgumentParser(default_fields=['CaseId__c', 'TotalMinutesStatic__c'],
+                                    epilog=epilog)
 
     parser.add_argument('-n', '--casenumber', action='append',
                         help='Case number (or Case ID)')
@@ -25,26 +28,33 @@ def main():
                         help='Timecards owned by owner (name or ID)')
 
     parser.add_argument('-B', '--before',
-                        help='Only timecards with start time at or before this time')
+                        help='Only timecards with start time <= this date/time')
     parser.add_argument('-A', '--after',
-                        help='Only timecards with start time at or after this time')
-    parser.add_argument('--larger',
-                        help='Only timecards with minutes at or more than this')
-    parser.add_argument('--smaller',
-                        help='Only timecards with minutes at or less than this')
+                        default='1 year ago',
+                        help='Only timecards with start time >= this date/time (default: 1 year ago)')
+    parser.add_argument('--last-month',
+                        help='Only timecards with start time during last calendar month')
+    parser.add_argument('--this-month',
+                        help='Only timecards with start time during this calendar month')
+    parser.add_argument('--larger', type=int, default=1,
+                        help='Only timecards with minutes >= this (default: 1)')
+    parser.add_argument('--smaller', type=int, default=0,
+                        help='Only timecards with minutes <= this')
 
     opts = parser.parse_args()
     sf = opts.SF()
 
     kwargs = opts.query_kwargs
-    if opts.before:
-        kwargs['before'] = dateparser.parse(opts.before)
-    if opts.after:
-        kwargs['after'] = dateparser.parse(opts.after)
-    if opts.larger:
-        kwargs['larger'] = opts.larger
-    if opts.smaller:
-        kwargs['smaller'] = opts.smaller
+    for o in ['before', 'after']:
+        value = getattr(opts, o)
+        if value:
+            kwargs[o] = dateparser.parse(value)
+            if opts.verbose:
+                print(f"Parsed '{o}' value '{value}' as '{kwargs[o].isoformat()}'")
+    for o in ['larger', 'smaller']:
+        value = getattr(opts, o)
+        if value:
+            kwargs[o] = value
 
     timecards = []
     if opts.casenumber:
