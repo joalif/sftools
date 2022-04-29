@@ -13,7 +13,10 @@ setup(
         'requests',
     ],
     scripts=[
-        'scripts/sf-shell',
         'scripts/sf-case',
+        'scripts/sf-object',
+        'scripts/sf-shell',
+        'scripts/sf-timecard',
+        'scripts/sf-user',
     ],
 )
