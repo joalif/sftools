@@ -25,7 +25,7 @@ def main():
                         help='User name is or contains this value')
 
     opts = parser.parse_args()
-    sf = opts.function.SF()
+    sf = opts.functions.SF()
 
     users = []
     if opts.me:
