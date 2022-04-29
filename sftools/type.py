@@ -5,7 +5,6 @@
 from contextlib import suppress
 from functools import cached_property
 from functools import partial
-from itertools import chain
 
 try:
     from simple_salesforce import SalesforceExpiredSession

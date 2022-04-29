@@ -2,7 +2,7 @@
 #
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
-from functools import cached_property
+from functools import partial
 
 from sftools.case import SFCaseObject
 from sftools.object import SFObject
@@ -11,11 +11,16 @@ from sftools.type import SFType
 from sftools.user import SFUserObject
 
 
+def timecards_from(funcname, obj, **kwargs):
+    return getattr(obj._sf.sftype('TimeCard__c'), 'funcname')(obj, **kwargs)
+
+
 # Extend SFCaseObject with timecards()
-SFCaseObject.timecards = lambda self, **kwargs: self._sf.sftype('TimeCard__c').fromcase(self, **kwargs)
+SFCaseObject.timecards = partial(timecards_from, 'fromcase')
+
 
 # Extend SFUserObject with timecards()
-SFUserObject.timecards = lambda self, **kwargs: self._sf.sftype('TimeCard__c').fromuser(self, **kwargs)
+SFUserObject.timecards = partial(timecards_from, 'fromuser')
 
 
 class SFTimeCardType(SFType, name='TimeCard__c'):

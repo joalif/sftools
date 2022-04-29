@@ -1,6 +1,4 @@
 
-from collections import UserString
-
 
 class SOQL(object):
     '''SOQL query object.

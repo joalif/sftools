@@ -173,8 +173,7 @@ class SF(object):
 
     def soql(self, WHERE, **kwargs):
         if not kwargs.get('SELECT') or not kwargs.get('FROM'):
-            l = WHERE.split()[0]
-            FROM, SELECT = l.split('.')
+            FROM, SELECT = WHERE.split()[0].split('.')
             kwargs.setdefault('FROM', FROM)
             kwargs.setdefault('SELECT', SELECT)
         kwargs.setdefault('preload_fields', self.preload_fields)

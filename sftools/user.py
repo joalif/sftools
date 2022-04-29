@@ -3,7 +3,6 @@
 # Copyright 2022 Dan Streetman <ddstreet@ieee.org>
 
 from contextlib import suppress
-from functools import cached_property
 
 try:
     from simple_salesforce import SalesforceMalformedRequest

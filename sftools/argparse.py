@@ -68,7 +68,7 @@ class SFObjectArgumentParser(SFArgumentParser):
         if default_fields:
             field_help += f' (default {",".join(default_fields)})'
         else:
-            field_help += f' (default all fields)'
+            field_help += ' (default all fields)'
         field_group = self.add_mutually_exclusive_group()
         field_group.add_argument('-f', '--field', action='append',
                                  help=field_help)
