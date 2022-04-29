@@ -88,6 +88,9 @@ class SFObjectArgumentParser(SFArgumentParser):
         elif not opts.field and self.default_fields:
             opts.field = self.default_fields
 
+        if opts.verbose:
+            print(opts)
+
         opts.functions.SF = partial(self.sf, opts)
         opts.functions.dumpfields = partial(self.dumpfields, opts)
         opts.query_kwargs = {
