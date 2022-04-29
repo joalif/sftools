@@ -15,6 +15,10 @@ from sftools.soql import WhereUtil
 def main():
     parser = SFObjectArgumentParser(default_fields=['Name', 'Username', 'Alias'])
 
+    parser.add_argument('-m', '--me', action='store_true',
+                        help='Currently authenticated user')
+    parser.add_argument('-e', '--email', action='append',
+                        help='User Email')
     parser.add_argument('-u', '--userid', action='append',
                         help='User Id (or Alias)')
     parser.add_argument('-n', '--name',
@@ -24,6 +28,16 @@ def main():
     sf = opts.SF()
 
     users = []
+    if opts.me:
+        users.append(sf.me)
+
+    if opts.email:
+        for e in opts.email:
+            matches = sf.User.query(f"Email = '{e}'",
+                                    **opts.query_kwargs)
+            if matches:
+                users.extend(matches)
+
     if opts.userid:
         for i in opts.userid:
             user = sf.User(i)
