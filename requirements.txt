@@ -1,3 +1,4 @@
-simple-salesforce
+dateparser
 ipython
 requests
+simple-salesforce
