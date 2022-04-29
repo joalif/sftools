@@ -51,6 +51,9 @@ def main():
     total.add_argument('--total-minutes', action='store_true',
                        help='Print total time in minutes')
 
+    parser.add_argument('--delete', action='store_true',
+                        help='DELETE the timecard(s) - USE WITH CAUTION')
+
     opts = parser.parse_args()
     sf = opts.functions.SF()
     kwargs = opts.query_kwargs
@@ -139,6 +142,8 @@ def main():
             print(f'Total time: {hours} hours')
         elif opts.total_minutes:
             print(f'Total time: {total_time} minutes')
+    elif opts.delete:
+        opts.functions.delete(timecards)
     else:
         opts.functions.dumpfields(timecards)
 
