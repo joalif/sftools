@@ -32,13 +32,14 @@ class SF(object):
     # https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_sosl_find.htm#reserved_chars
     SOSL_RESERVED_CHARS = re.compile(r'([?&|!{}[\]()^~*:\\"\'+-])')
 
-    def __init__(self, config=None, verbose=False, preload_fields=False, sf_version=None):
+    def __init__(self, config=None, verbose=False, preload_fields=False, sf_version=None, dry_run=False):
         if isinstance(config, str):
             config = SFConfig(config)
         self._config = config or SFConfig.DEFAULT()
         self._sf_version = sf_version or '53.0'
         self.verbose = verbose
         self.preload_fields = preload_fields
+        self.dry_run = dry_run
 
     @property
     def config(self):

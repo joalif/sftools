@@ -13,6 +13,8 @@ class SFArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, action_required=False, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.add_argument('--dry-run', action='store_true',
+                          help='Dry-run only, do not make any changes')
         self.add_argument('-v', '--verbose', action='store_true',
                           help='Be verbose.')
 
@@ -104,6 +106,8 @@ class SFObjectArgumentParser(SFArgumentParser):
 
     def sf(self, opts, *args, **kwargs):
         kwargs.setdefault('preload_fields', not opts.field)
+        kwargs.setdefault('verbose', opts.verbose)
+        kwargs.setdefault('dry_run', opts.dry_run)
         return super().sf(opts, *args, **kwargs)
 
     def limit_objects(self, opts, objects):

@@ -56,6 +56,10 @@ class SFType(object):
                 return p()
         self._sftype._call_salesforce = partial(wrapper, self._sftype._call_salesforce)
 
+    @property
+    def dry_run(self):
+        return self._sf.dry_run
+
     @cached_property
     def fields(self):
         return self.describe().get('fields')
@@ -98,6 +102,36 @@ class SFType(object):
         with suppress(SalesforceMalformedRequest):
             return self.query(where=f"Id = '{id_or_record}'").sfobject
         return None
+
+    def delete(self, object_id, raw_response=None):
+        '''DELETE the object with object_id.
+
+        Be careful - this will delete the object (unless self.dry_run is True).
+
+        If 'raw_response' is not None, it is passed on to simple-salesforce;
+        see the docs for delete() there for details on its use.
+
+        If self.dry_run is True, this does not actually perform the delete
+        operation, and will return True.
+
+        Returns the result of the call to simple-salesforce SFType.delete().
+
+        Note this does NOT attempt to refresh OAuth if it is expired!
+        '''
+        if self._sf.verbose:
+            msg = f'SFtype({self._sftype.name}): delete({object_id}'
+            if raw_response is not None:
+                msg += f', raw_response={raw_response}'
+            msg += ')'
+            print(msg)
+
+        if self.dry_run:
+            return True
+
+        if raw_response is not None:
+            return self._sftype.delete(object_id, raw_response=raw_response)
+        else:
+            return self._sftype.delete(object_id)
 
     def query(self, where, **kwargs):
         '''Query this specific SFType.
