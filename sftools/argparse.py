@@ -2,6 +2,7 @@
 import argparse
 import time
 
+from copy import copy
 from functools import partial
 from types import SimpleNamespace
 
@@ -33,6 +34,20 @@ class SFArgumentParser(argparse.ArgumentParser):
         action.add_argument('--show-config', action='store_true',
                             help='Show current user config (without defaults)')
         self.action_group = action
+
+    def _parse_args(self, *args, **kwargs):
+        opts = super().parse_args(*args, **kwargs)
+        opts.functions = SimpleNamespace()
+        opts.functions.SF = partial(self.sf, opts)
+        return opts
+
+    def parse_args(self, *args, **kwargs):
+        opts = self._parse_args(*args, **kwargs)
+        if opts.verbose:
+            opts_copy = copy(opts)
+            del opts_copy.functions
+            print(opts_copy)
+        return opts
 
     def sf(self, opts, *args, **kwargs):
         kwargs.setdefault('verbose', opts.verbose)
@@ -82,19 +97,14 @@ class SFObjectArgumentParser(SFArgumentParser):
         self.add_argument('--limit', type=int, default=0,
                           help='Limit number of matched objects')
 
-    def parse_args(self, *args, **kwargs):
-        opts = super().parse_args(*args, **kwargs)
-        opts.functions = SimpleNamespace()
+    def _parse_args(self, *args, **kwargs):
+        opts = super()._parse_args(*args, **kwargs)
 
         if opts.all_fields:
             opts.field = []
         elif not opts.field and self.default_fields:
             opts.field = self.default_fields
 
-        if opts.verbose:
-            print(opts)
-
-        opts.functions.SF = partial(self.sf, opts)
         opts.functions.delete = partial(self.delete, opts)
         opts.functions.dumpfields = partial(self.dumpfields, opts)
         opts.query_kwargs = {
