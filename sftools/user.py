@@ -28,7 +28,7 @@ class SFUserType(SFType, name='User'):
         '''
         if isinstance(alias, str):
             with suppress(SalesforceMalformedRequest):
-                return self.query(f"Alias = '{alias}'").record.get('Id', alias)
+                return self._query(f"Alias = '{alias}'").record.get('Id', alias)
         return alias
 
 

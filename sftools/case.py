@@ -14,10 +14,9 @@ class SFCaseType(SFType, name='Case'):
     '''SF Case Type.'''
     def __call__(self, id_or_number):
         '''Allow looking up cases by Case.Id or Case.CaseNumber'''
-        caseid = self._casenumber_to_caseid(id_or_number)
-        return super().__call__(caseid)
+        return super().__call__(self._casenumber_to_record(id_or_number))
 
-    def _casenumber_to_caseid(self, number):
+    def _casenumber_to_record(self, number):
         '''Lookup Case.Id for CaseNumber.
 
         On failure, 'number' is returned.
@@ -29,7 +28,7 @@ class SFCaseType(SFType, name='Case'):
 
         if len(str(n)) <= 8:
             where = f"CaseNumber = '{str(n).zfill(8)}'"
-            return self.query(where=where, only_open=False).record.get('Id', number)
+            return self.query(where=where, only_open=False).record
 
         return number
 

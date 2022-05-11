@@ -100,7 +100,7 @@ class SFType(object):
             return self._sfobjects.get(id_or_record)
 
         with suppress(SalesforceMalformedRequest):
-            return self.query(where=f"Id = '{id_or_record}'").sfobject
+            return self._query(where=f"Id = '{id_or_record}'").sfobject
         return None
 
     def delete(self, object_id, raw_response=None):
@@ -133,6 +133,12 @@ class SFType(object):
         else:
             return self._sftype.delete(object_id)
 
+    def _query(self, where, **kwargs):
+        # Internal query call - this avoids subclass extra field defaults, e.g. Case.IsClosed = False
+        soql = SOQL(FROM=self.name, WHERE=where, **kwargs)
+        soql.SELECT_AND('Id')
+        return self._sf.query(soql)
+
     def query(self, where, **kwargs):
         '''Query this specific SFType.
 
@@ -141,6 +147,5 @@ class SFType(object):
 
         Returns a QueryResult of matching SFObjects of this SFType.
         '''
-        soql = SOQL(FROM=self.name, WHERE=where, **kwargs)
-        soql.SELECT_AND('Id')
-        return self._sf.query(soql)
+        # By default, just call _query(), subclasses can adjust behavior
+        return self._query(where, **kwargs)

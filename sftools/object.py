@@ -72,8 +72,8 @@ class SFObject(object):
 
         # Perform the dynamic lookup by querying Salesforce
         with suppress(SalesforceMalformedRequest):
-            return self._sftype.query(where=f"{self._name}.Id = '{self.Id}'",
-                                      SELECT=attr).record.get(attr, None)
+            return self._sftype._query(where=f"{self._name}.Id = '{self.Id}'",
+                                       SELECT=attr).record.get(attr, None)
         return None
 
     def __repr__(self):
